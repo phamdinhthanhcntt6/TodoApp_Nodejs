@@ -78,7 +78,7 @@ const registerUser = async (req: Request, res: Response) => {
     await VerifiedEmail.deleteOne({ email })
 
     res.status(200).json({
-      message: 'User created successfully',
+      message: 'Registered successfully',
       user: newUser
     })
   } catch (error) {
