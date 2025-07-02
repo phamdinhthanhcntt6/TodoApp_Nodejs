@@ -39,6 +39,7 @@ const verifyCode = async (req: Request, res: Response) => {
     const otpRecord = await Otp.findOne({ email, code })
     if (!otpRecord) {
       res.status(400).json({ message: 'Invalid verification code' })
+      await Otp.deleteMany({ email })
       return
     }
 
