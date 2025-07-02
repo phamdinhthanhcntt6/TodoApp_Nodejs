@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 const otpSchema = new mongoose.Schema({
   email: String,
   code: String,
-  expiresAt: Number
+  expiresAt: Date
 })
 
 const Opt = mongoose.model('otp', otpSchema)
