@@ -3,6 +3,7 @@ import Otp from '~/models/otp.model'
 import User from '~/models/user.model'
 import sendOTP from '~/utils/sendOTP'
 import VerifiedEmail from '~/models/verifiedEmail.model'
+import bcrypt from 'bcryptjs'
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -73,7 +74,9 @@ const registerUser = async (req: Request, res: Response) => {
       return
     }
 
-    const newUser = await User.create({ email, password, username })
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const newUser = await User.create({ email, password: hashedPassword, username })
 
     await VerifiedEmail.deleteOne({ email })
 
