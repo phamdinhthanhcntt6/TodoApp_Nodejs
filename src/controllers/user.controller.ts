@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import Otp from '~/models/otp.model'
 import User from '~/models/user.model'
 import sendOTP from '~/utils/sendOTP'
+import VerifiedEmail from '~/models/verifiedEmail.model'
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -36,28 +37,22 @@ const verifyCode = async (req: Request, res: Response) => {
     const { email, code } = req.body
 
     const otpRecord = await Otp.findOne({ email, code })
-
     if (!otpRecord) {
       res.status(400).json({ message: 'Invalid verification code' })
       return
     }
 
-    if (!otpRecord.expiresAt || otpRecord.expiresAt < new Date()) {
+    if (otpRecord.expiresAt < new Date()) {
       res.status(400).json({ message: 'Verification code expired' })
       return
     }
 
+    await VerifiedEmail.create({ email })
     await Otp.deleteMany({ email })
 
-    res.status(200).json({
-      message: 'OTP verified successfully',
-      email
-    })
+    res.status(200).json({ message: 'OTP verified successfully' })
   } catch (error) {
-    res.status(500).json({
-      message: 'Internal server error',
-      error
-    })
+    res.status(500).json({ message: 'Server error', error })
   }
 }
 
