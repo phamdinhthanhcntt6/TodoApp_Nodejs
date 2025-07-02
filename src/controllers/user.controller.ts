@@ -57,4 +57,36 @@ const verifyCode = async (req: Request, res: Response) => {
   }
 }
 
-export { register, verifyCode }
+const registerUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password, username } = req.body
+
+    const isVerified = await VerifiedEmail.findOne({ email })
+    if (!isVerified) {
+      res.status(400).json({ message: 'Email not verified' })
+      return
+    }
+
+    const user = await User.findOne({ email })
+    if (user) {
+      res.status(400).json({ message: 'Email already exists' })
+      return
+    }
+
+    const newUser = await User.create({ email, password, username })
+
+    await VerifiedEmail.deleteOne({ email })
+
+    res.status(200).json({
+      message: 'User created successfully',
+      user: newUser
+    })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+      error
+    })
+  }
+}
+
+export { register, verifyCode, registerUser }
