@@ -133,15 +133,15 @@ const login = async (req: Request, res: Response) => {
   }
 }
 
-const refreshToken = async (req: Request, res: Response) => {
-  try {
-    const token = req.cookies.refreshToken
-    if (!token) {
-      res.status(401).json({ message: 'No refresh token found' })
-      return
-    }
+const refreshToken = (req: Request, res: Response) => {
+  const { refreshToken } = req.body
+  if (!refreshToken) {
+    res.status(401).json({ message: 'Missing refresh token' })
+    return
+  }
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET as string) as {
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET as string) as {
       userId: string
       email: string
     }
@@ -152,9 +152,10 @@ const refreshToken = async (req: Request, res: Response) => {
       { expiresIn: '15m' }
     )
 
-    res.status(200).json({ accessToken: newAccessToken })
+    res.json({ accessToken: newAccessToken })
   } catch (error) {
-    res.status(403).json({ message: 'Invalid or expired refresh token', error })
+    res.status(403).json({ message: 'Invalid refresh token', error })
   }
 }
+
 export { register, verifyCode, registerUser, login, refreshToken }
