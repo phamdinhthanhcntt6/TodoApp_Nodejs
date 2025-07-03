@@ -4,6 +4,7 @@ import User from '~/models/user.model'
 import sendOTP from '~/utils/sendOTP'
 import VerifiedEmail from '~/models/verifiedEmail.model'
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -108,9 +109,21 @@ const login = async (req: Request, res: Response) => {
       return
     }
 
+    const payload = { userId: user._id, email: user.email }
+
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '15m' })
+
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET as string, { expiresIn: '7d' })
+
     res.status(200).json({
       message: 'Login successful',
-      user
+      accessToken,
+      refreshToken,
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username
+      }
     })
   } catch (error) {
     res.status(500).json({
@@ -120,4 +133,28 @@ const login = async (req: Request, res: Response) => {
   }
 }
 
-export { register, verifyCode, registerUser, login }
+const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies.refreshToken
+    if (!token) {
+      res.status(401).json({ message: 'No refresh token found' })
+      return
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET as string) as {
+      userId: string
+      email: string
+    }
+
+    const newAccessToken = jwt.sign(
+      { userId: decoded.userId, email: decoded.email },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '15m' }
+    )
+
+    res.status(200).json({ accessToken: newAccessToken })
+  } catch (error) {
+    res.status(403).json({ message: 'Invalid or expired refresh token', error })
+  }
+}
+export { register, verifyCode, registerUser, login, refreshToken }
