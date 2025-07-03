@@ -149,7 +149,7 @@ const refreshToken = (req: Request, res: Response) => {
     const newAccessToken = jwt.sign(
       { userId: decoded.userId, email: decoded.email },
       process.env.JWT_SECRET as string,
-      { expiresIn: '15m' }
+      { expiresIn: '1m' }
     )
 
     res.json({ accessToken: newAccessToken })
