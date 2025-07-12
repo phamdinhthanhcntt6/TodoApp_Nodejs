@@ -7,9 +7,9 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
 const register = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body
+  const { email } = req.body
 
+  try {
     const user = await User.findOne({ email })
     if (user) {
       res.status(400).json({
@@ -35,9 +35,9 @@ const register = async (req: Request, res: Response) => {
 }
 
 const verifyCode = async (req: Request, res: Response) => {
-  try {
-    const { email, code } = req.body
+  const { email, code } = req.body
 
+  try {
     const otpRecord = await Otp.findOne({ email, code })
     if (!otpRecord) {
       res.status(400).json({ message: 'Invalid verification code' })
@@ -60,9 +60,9 @@ const verifyCode = async (req: Request, res: Response) => {
 }
 
 const registerUser = async (req: Request, res: Response) => {
-  try {
-    const { email, password, username } = req.body
+  const { email, password, username } = req.body
 
+  try {
     const isVerified = await VerifiedEmail.findOne({ email })
     if (!isVerified) {
       res.status(400).json({ message: 'Email not verified' })
@@ -94,9 +94,9 @@ const registerUser = async (req: Request, res: Response) => {
 }
 
 const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body
+  const { email, password } = req.body
 
+  try {
     const user = await User.findOne({ email })
     if (!user) {
       res.status(400).json({ message: 'Invalid email or password' })
@@ -135,6 +135,7 @@ const login = async (req: Request, res: Response) => {
 
 const refreshToken = (req: Request, res: Response) => {
   const { refreshToken } = req.body
+
   if (!refreshToken) {
     res.status(401).json({ message: 'Missing refresh token' })
     return
@@ -158,4 +159,29 @@ const refreshToken = (req: Request, res: Response) => {
   }
 }
 
-export { register, verifyCode, registerUser, login, refreshToken }
+const getProfile = async (req: Request, res: Response) => {
+  const id = req.query.id as string
+
+  if (!id) {
+    res.status(400).json({ message: 'Missing id in query' })
+    return
+  }
+
+  try {
+    const user = await User.findById(id).select('-password')
+
+    if (!user) {
+      res.status(400).json({ message: 'User not found' })
+      return
+    }
+
+    res.status(200).json({ user })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+      error
+    })
+  }
+}
+
+export { register, verifyCode, registerUser, login, refreshToken, getProfile }
