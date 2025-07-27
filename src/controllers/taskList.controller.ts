@@ -55,7 +55,7 @@ const createTaskList = async (req: Request, res: Response) => {
 }
 
 const removeTaskList = async (req: Request, res: Response) => {
-  const { id } = req.body
+  const { id } = req.query
 
   try {
     await TaskList.deleteOne({ _id: id })
